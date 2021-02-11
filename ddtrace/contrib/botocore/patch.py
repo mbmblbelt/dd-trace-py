@@ -42,7 +42,7 @@ config._add('botocore', {
 def inject_trace_data_to_message_attributes(trace_data, entry):
     if 'MessageAttributes' not in entry:
         entry['MessageAttributes'] = {}
-    # An Amazon SQS message can contain up to 10 metadata attributes.
+    # An Amazon SNS or SQS message can contain up to 10 metadata attributes.
     if len(entry['MessageAttributes']) < 10:
         entry['MessageAttributes']['_datadog'] = {
             'DataType': 'String',
@@ -146,6 +146,8 @@ def patched_api_call(original_func, instance, args, kwargs):
                     inject_trace_to_sqs_message(args, span)
                 if endpoint_name == 'sqs' and operation == 'SendMessageBatch':
                     inject_trace_to_sqs_batch_message(args, span)
+                if endpoint_name == 'sns' and operation == 'Publish':
+                    inject_trace_to_sqs_message(args, span)
 
         else:
             span.resource = endpoint_name
